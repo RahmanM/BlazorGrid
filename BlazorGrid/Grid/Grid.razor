@@ -1,0 +1,156 @@
+﻿@typeparam TItem
+
+<table class="table">
+    <tr>
+        @foreach (ColumnsConifg column in Columns)
+        {
+            <th @onclick="()=> ApplySort(column)" style="cursor: pointer; @GetHeaderAlignment(@column.Alignment)">
+                @column.Caption
+            <span class="float-right @GetSortOrder(column)"></span>
+        </th>
+    }
+    </tr>
+
+    <tbody>
+        @foreach (var employee in DataItems.Skip(Paging.NumberOfItemsToSkip(CurrentPage)).Take(Paging.NumberOfItemsToTake(DataItems.Count)))
+        {
+            <tr>
+                @foreach (var column in Columns)
+                {
+
+                    <td align="@column.Alignment.ToString().ToLower()">
+                        @GetFormattedDataValue(column, employee)
+                    </td>
+
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (Paging.PagingEnabled)
+{
+    <div>
+        <button @onclick="(()=> CurrentPage = Paging.PreviousPageNumber(CurrentPage))">Previous</button>
+        <button @onclick="(()=> CurrentPage = Paging.NextPageNumber(CurrentPage, DataItems.Count))">Next</button>
+    </div>
+}
+
+
+@code {
+
+    public int CurrentPage { get; set; } = 1;
+
+    [Parameter]
+    public List<ColumnsConifg> Columns { get; set; }
+
+    [Parameter]
+    public List<TItem> DataItems { get; set; }
+
+    [Parameter]
+    public Paging Paging { get; set; }
+
+
+    // This is overwritten so we need to override the style
+    string GetHeaderAlignment(Alignment alignment)
+    {
+        switch (alignment)
+        {
+            case Alignment.Left:
+                return "text-align: left;";
+            case Alignment.Right:
+                return "text-align: right;";
+            case Alignment.Center:
+                return "text-align: center;";
+        }
+        return "align-left";
+    }
+
+    string GetFormattedDataValue(ColumnsConifg column, TItem employee)
+    {
+        var value = typeof(TItem).GetProperty(column.ColumnName).GetValue(employee).ToString();
+
+        switch (column.DataType)
+        {
+            case DataType.String:
+                value = typeof(TItem).GetProperty(column.ColumnName).GetValue(employee).ToString();
+                break;
+            case DataType.Number:
+                value = int.Parse(typeof(TItem).GetProperty(column.ColumnName).GetValue(employee).ToString()).ToString(column.Format);
+                break;
+            case DataType.Currency:
+                value = double.Parse(typeof(TItem).GetProperty(column.ColumnName).GetValue(employee).ToString()).ToString(column.Format);
+                break;
+            case DataType.DateTime:
+            case DataType.Date:
+                value = DateTime.Parse(typeof(TItem).GetProperty(column.ColumnName).GetValue(employee).ToString()).ToString(column.Format);
+                break;
+            case DataType.TrueFalse:
+                value = bool.Parse(typeof(TItem).GetProperty(column.ColumnName).GetValue(employee).ToString()).ToString();
+                break;
+        }
+
+        return value;
+    }
+
+
+    string GetSortOrder(ColumnsConifg column)
+    {
+        if (column.SortOrder == SortOrder.NotSet)
+        {
+            return SortOrder.NotSet.ToString().ToLower();
+        }
+
+        return $"sort {column.SortOrder.ToString().ToLower()}";
+    }
+
+    void ApplySort(ColumnsConifg column = null)
+    {
+        foreach (var c in Columns)
+        {
+            if (c.ColumnName != column.ColumnName) c.SortOrder = SortOrder.NotSet;
+        }
+
+        switch (column.SortOrder)
+        {
+            case SortOrder.NotSet:
+                column.SortOrder = SortOrder.Asc;
+                break;
+            case SortOrder.Asc:
+                column.SortOrder = SortOrder.Desc;
+                break;
+            case SortOrder.Desc:
+                column.SortOrder = SortOrder.Asc;
+                break;
+            default:
+                column.SortOrder = SortOrder.Asc;
+                break;
+        }
+
+        if (column.DataType == DataType.Date || column.DataType == DataType.DateTime)
+        {
+            if (column.SortOrder == SortOrder.Asc)
+            {
+                DataItems.Sort((x, y) => DateTime.Parse(typeof(TItem).GetProperty(column.ColumnName).GetValue(x).ToString())
+                    .CompareTo(DateTime.Parse(typeof(TItem).GetProperty(column.ColumnName).GetValue(y).ToString())));
+            }
+            else
+            {
+                DataItems.Sort((x, y) => DateTime.Parse(typeof(TItem).GetProperty(column.ColumnName).GetValue(y).ToString())
+                    .CompareTo(DateTime.Parse(typeof(TItem).GetProperty(column.ColumnName).GetValue(x).ToString())));
+            }
+        }
+
+        if (column.SortOrder == SortOrder.Asc)
+        {
+            DataItems.Sort((x, y) => typeof(TItem).GetProperty(column.ColumnName).GetValue(x).ToString()
+                .CompareTo(typeof(TItem).GetProperty(column.ColumnName).GetValue(y).ToString()));
+        }
+        else
+        {
+            DataItems.Sort((x, y) => typeof(TItem).GetProperty(column.ColumnName).GetValue(y).ToString()
+                .CompareTo(typeof(TItem).GetProperty(column.ColumnName).GetValue(x).ToString()));
+        }
+    }
+
+}

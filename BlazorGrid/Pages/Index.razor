@@ -1,0 +1,58 @@
+﻿@using BlazorGrid.Grid
+
+@page "/"
+
+<BlazorGrid.Grid.Grid TItem="Employee" Columns="@Columns" DataItems="@Employees" Paging=@(new Paging() { PagingEnabled = true, PageSize = 2 }) />
+
+
+@code{
+
+    public List<ColumnsConifg> Columns { get; set; }
+
+    public List<Employee> Employees { get; set; }
+
+
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        // Sample Column definitions
+        Columns = new List<ColumnsConifg>()
+{
+            new ColumnsConifg(){ColumnName="Name", Alignment=Alignment.Left, Caption="Name", DataType=DataType.String, SortOrder=SortOrder.Asc},
+            new ColumnsConifg(){ColumnName="DateOfBirth", Alignment=Alignment.Left, Caption="Date Of Birth", DataType=DataType.Date, Format="dd/MM/yyyy"},
+            new ColumnsConifg(){ColumnName="IsFullTime", Alignment=Alignment.Center, Caption="Is Full Time", DataType=DataType.TrueFalse},
+            new ColumnsConifg(){ColumnName="Salary", Alignment=Alignment.Right, Caption="Salary", DataType=DataType.Currency, Format="C"},
+            new ColumnsConifg(){ColumnName="Points", Alignment=Alignment.Center , Caption="Points", DataType=DataType.Number, Format="N0"}
+        };
+
+        // Sample data
+        Employees = new List<Employee>()
+{
+            new Employee(){Name="Rahman Mahmoodi", DateOfBirth=new DateTime(1977, 05,27), Points=430000, IsFullTime=true, Salary=220000},
+            new Employee(){Name="Hosha Mahmoodi", DateOfBirth=new DateTime(2008, 05,22), Points=12000, IsFullTime=false, Salary=10000},
+            new Employee(){Name="Yama Mahmoodi", DateOfBirth=new DateTime(1979, 01,22), Points=42000, IsFullTime=true, Salary=150000},
+            new Employee(){Name="Maria Mahmoodi", DateOfBirth=new DateTime(1981, 08,15), Points=39000, IsFullTime=false, Salary=200000},
+            new Employee(){Name="Poya Mahmoodi", DateOfBirth=new DateTime(1981, 08,19), Points=391000, IsFullTime=false, Salary=200000},
+            new Employee(){Name="Joya Mahmoodi", DateOfBirth=new DateTime(1981, 08,17), Points=390200, IsFullTime=false, Salary=2010000},
+            new Employee(){Name="Moya Mahmoodi", DateOfBirth=new DateTime(1981, 08,18), Points=390400, IsFullTime=false, Salary=2002000},
+
+        };
+    }
+
+    public class Employee
+    {
+        public string Name { get; set; }
+
+        public DateTime DateOfBirth { get; set; }
+
+        public bool IsFullTime { get; set; }
+
+        public decimal Salary { get; set; }
+
+        public int Points { get; set; }
+
+    }
+
+}
